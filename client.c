@@ -15,7 +15,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
-#include "proto.h"
 #include "string.h"
 
 volatile sig_automatic_t flag = 0;
