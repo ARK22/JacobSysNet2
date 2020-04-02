@@ -5,10 +5,10 @@
 
 all: Server Client
 
-httpServer: httpServer.c
+Server: server.c
 	gcc -g -Wall -o Server server.c
 
-httpClient: httpClient.c
+Client: client.c
 	gcc -g -Wall -o Client client.c
 
 clean:
