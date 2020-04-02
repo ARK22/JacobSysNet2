@@ -2,93 +2,96 @@
 * Jacob Sansone
 * Alexander King
 * COP4635
-* Project 1
+* Project 2
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/in.h>
+#include <signal.h>
 #include <unistd.h>
-#include <errno.h>
-/*Used for error detection during all steps of creating and connecting the sockets.*/
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <pthread.h>
+#include "proto.h"
+#include "string.h"
+
+volatile sig_automatic_t flag = 0;
+
+int sockfd = 0;
+
+void catch_ctrl_c_and_exit(int sig)
+{
+ flag = 1;	
+}
+
 void error(char *msg)
 {
     perror(msg);
     exit(-1);
 }
 
+void recv()
+{
+	
+}
 
-int main(int argc, char* argv[]){
+void send()
+{
+	
+}
+
+int main()
+{
+	sockfd = socket(AF_INET, SOCKS_STREAM, 0);
+	if(sockfd == -1)
+	{
+		printf("Fail to create a socket");
+		exit(EXIT_FAILURE);
+	}
    
+   struct sockaddr_in server_info, client_info;
+   int s_addrlen = sizeof(server_info);
+   int c_addrlen = sizeof(client_info);
+   memset(&server_info, 0, s_addrlen);
+   memeset(&client_info, 0, c_addrlen);
+   /*port num = 60056*/
+   server_info.sin_family = PF_INET;
+   server_infor.sin_addr.s_addr = inet_addr(IN_ADDR_ANY);
+   server_info.sin_port = htons(60056);
    
-   /*check to ensure we are passing a file*/
-    if(argc < 2)
-    {
-        printf("Usage: %s filename\n", argv[0]);
-        exit(-1);
-    }
-    
-    
-    
-    /*creating required varibles*/
-    int tcp_client_socket, connection_status;
-    struct sockaddr_in tcp_server_address;
-    char buffer[256];
-    
-    
-    
-    
-    /*Parsing the http header to send.*/
-    memset(buffer, 0, sizeof(buffer));
-    strcpy(buffer, "GET /");
-    strcat(buffer, argv[1]);
-    strcat(buffer,  " HTTP/1.1\r\nHost: localhost\r\n\r\n");
+   int err = connect(sockfd,(struct sockaddr *)&server_info, s_addrlen);
+   if(err == -1)
+   {
+	   printf("Connection to Server error! \n");
+	   exit(EXIT_FAILURE);
+   }
+   
+   getsockname(sockfd,(struct sockaddr*) &client_info, (socklen_t *) &c_addrlen);
+   getpeername(sockfd,(struct sockaddr*) &server_info, (socklen_t *) &s_addrlen);
+   printf("Connect to Server: %s:%d\n", inet_ntoa(server_info.sin_addr), ntohs(client_info.sin_port));
+   
+   send(sockfd, nickname, LENGTH_NAME, 0);
+   
+   pthread_t recv_msg_thread;
 
-
-    
-    
-    
-    /*Creating the client socket*/
-    tcp_client_socket = socket(AF_INET, SOCK_STREAM, 0);
-    
-    
-    
-    
-    
-    /*Defining the paramters of the client socket: 
-       -------------------> The port to request from
-       -------------------> The TCP/IP protocol it will follow
-       -------------------> Setting the IP to localhost*/
-    tcp_server_address.sin_family = AF_INET;
-    tcp_server_address.sin_port = htons(60056);
-    tcp_server_address.sin_addr.s_addr = INADDR_ANY;
-
-    /*attempting to connect to a server on the port it is set to listen on*/
-    connection_status = connect(tcp_client_socket, (struct sockaddr *) &tcp_server_address, sizeof(tcp_server_address));
-    if (connection_status == -1)
-    {
-        printf("Socket failed to connect\n");
-     }
-    
-    /*Send request to the server*/
-    send(tcp_client_socket, buffer, sizeof(buffer), 0);
-    printf("Sent message:\n \"%s\" '\n", buffer);
-    
-    /*clear buffer*/
-    memset(buffer, 0 ,strlen(buffer));
-    
-    /*Recieve response from server*/
-    recv(tcp_client_socket, buffer, sizeof(buffer) - 1, 0);
-    
-    /*print recieved message*/
-    buffer[sizeof(buffer)] = '\0';
-    printf("Received Message:\n \"%s\" \n", buffer);
-
-    /*Closing connection after all interactions are completed.*/
-    close(tcp_client_socket);
-
+	if((pthread_create(&recv)msg)thread,NULL,(void *) recv_msg_handler, NULL)!= 0)
+	{
+		printf("Create pthread error!\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	while(1)
+	{
+		if(flag)
+		{
+			printf("\nbye\n");
+			break;
+		}
+	}
+	
+	close(sockfd);
     return 0;
 }
