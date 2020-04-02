@@ -15,7 +15,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
-#include "proto.h"
 #include "string.h"
 
 volatile sig_automatic_t flag = 0;
@@ -56,10 +55,10 @@ int main()
    int s_addrlen = sizeof(server_info);
    int c_addrlen = sizeof(client_info);
    memset(&server_info, 0, s_addrlen);
-   memeset(&client_info, 0, c_addrlen);
+   memset(&client_info, 0, c_addrlen);
    /*port num = 60056*/
    server_info.sin_family = PF_INET;
-   server_infor.sin_addr.s_addr = inet_addr(IN_ADDR_ANY);
+   server_infor.sin_addr.s_addr = inet_addr(INADDR_ANY);
    server_info.sin_port = htons(60056);
    
    int err = connect(sockfd,(struct sockaddr *)&server_info, s_addrlen);
@@ -73,11 +72,11 @@ int main()
    getpeername(sockfd,(struct sockaddr*) &server_info, (socklen_t *) &s_addrlen);
    printf("Connect to Server: %s:%d\n", inet_ntoa(server_info.sin_addr), ntohs(client_info.sin_port));
    
-   send(sockfd, nickname, LENGTH_NAME, 0);
+   send(sockfd, "hello", LENGTH_NAME, 0);
    
    pthread_t recv_msg_thread;
 
-	if((pthread_create(&recv)msg)thread,NULL,(void *) recv_msg_handler, NULL)!= 0)
+	if((pthread_create(&recv_msg_thread,NULL,(void *) recv_msg_handler, NULL)!= 0)
 	{
 		printf("Create pthread error!\n");
 		exit(EXIT_FAILURE);
