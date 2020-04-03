@@ -76,7 +76,7 @@ int main()
    
    pthread_t recv_msg_thread;
 
-	if((pthread_create(&recv_msg_thread,NULL,(void *) recv_msg_handler, NULL)!= 0)
+	if((pthread_create(&recv_msg_thread,NULL,(void *) recv_msg_handler, NULL)!= 0))
 	{
 		printf("Create pthread error!\n");
 		exit(EXIT_FAILURE);
