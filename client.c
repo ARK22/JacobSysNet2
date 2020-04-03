@@ -15,11 +15,21 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
-#include "string.h"
 
 volatile  sig_atomic_t flag = 0;
-
 int sockfd = 0;
+
+void regi(int client_socket){
+	char user[30], pass[30], toSend[90] = "1.";
+	printf("Enter a Username:");
+	scanf("%s", user);
+	printf("Enter a Password:");
+	scanf("%s", pass);
+	strcat(toSend, user);
+	strcat(toSend, ".");
+	strcat(toSend, pass);
+	printf("%s", toSend);
+}
 
 void catch_ctrl_c_and_exit(int sig)
 {
@@ -69,8 +79,8 @@ int main()
    }
    
    getsockname(sockfd,(struct sockaddr*) &client_info, (socklen_t *) &c_addrlen);
-   //getpeername(sockfd,(struct sockaddr*) &server_info, (socklen_t *) &s_addrlen);
-   printf("Connect to Server: %s:%d\n", inet_ntoa(server_info.sin_addr), ntohs(client_info.sin_port));
+   getpeername(sockfd,(struct sockaddr*) &server_info, (socklen_t *) &s_addrlen);
+   printf("Connect to Server: %s:%d\n", inet_ntoa(server_info.sin_addr), ntohs(server_info.sin_port));
    
    /*send(sockfd, "hello", LENGTH_NAME, 0);
    
@@ -82,15 +92,35 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 	
-	while(1)
+	*/
+	int inp, life = 1;
+	while(life)
 	{
-		if(flag)
+		printf("\n-=| Online Chat Room |=-\n");
+		printf("1. Register\n");
+		printf("2. Login\n");
+		printf("0. QUIT\n");
+		printf("Enter an action:");
+		scanf("%d", &inp);
+		switch (inp)
 		{
-			printf("\nbye\n");
+		case 1:
+			regi(sockfd);
+			break;
+		case 2:
+			/* code */
+			break;
+		case 0:
+			life = 0;
+			break;
+		
+		default:
+			printf("Invalid Entry, please pick a number between 0 and 2");
 			break;
 		}
+
 	}
-	*/
+	
 	close(sockfd);
     return 0;
 }
