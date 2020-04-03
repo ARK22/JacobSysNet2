@@ -14,10 +14,12 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include "server.h"
 #define MAX_CONNECTIONS 5
 
 //Global variables
 int server_sockfd = 0, client_sockfd = 0, bdFail = 0, lisFail = 0;
+ClientList *root, *current;
 
 int main() 
 {
@@ -51,7 +53,15 @@ int main()
     getsockname(server_sockfd, (struct sockaddr*) &server_info, (struct socklen_t*) &s_addrlen);
     printf("Server started on: %s:%d\n", inet_ntoa(server_info.sin_addr), ntohs(server_info.sin_port));
 
-    
+    root = newNode(server_sockfd, inet_ntoa(server_info.sin_addr));
+    current = root;
+
+    while(1){
+        client_sockfd = accept(server_sockfd, (struct sockaddr*) &client_info, (socklen_t*) &c_addrlen);
+
+        getpeername(client_sockfd, (struct sockaddr*) &client_info, (socklen_t*) &c_addrlen);
+        printf("Client %s:%d has joined.\n", inet_ntoa(client_info.sin_addr), ntohs(client_info.sin_port));
+    }
 
 
     
