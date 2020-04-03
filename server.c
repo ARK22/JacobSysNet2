@@ -14,12 +14,31 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 #include "server.h"
 #define MAX_CONNECTIONS 5
 
 //Global variables
 int server_sockfd = 0, client_sockfd = 0, bdFail = 0, lisFail = 0;
 ClientList *root, *current;
+
+void client_handler(void *p_client){
+    char buffer[90] = "";
+    ClientList *client = (ClientList *) p_client;
+    recv(client->data, buffer, sizeof(buffer),0);
+    printf("%s", buffer);
+
+    close(client->data);
+    if (client == current) {
+        current = client->prev;
+        current->link = NULL;
+    } 
+    else {
+        client->prev->link = client->link;
+        client->link->prev = client->prev;
+    }
+    free(client);
+}
 
 int main() 
 {
@@ -61,6 +80,17 @@ int main()
 
         getpeername(client_sockfd, (struct sockaddr*) &client_info, (socklen_t*) &c_addrlen);
         printf("Client %s:%d has joined.\n", inet_ntoa(client_info.sin_addr), ntohs(client_info.sin_port));
+
+        ClientList *node = newNode(client_sockfd, inet_ntoa(client_info.sin_addr));
+        node->prev = current;
+        current->link = node;
+        current = node;
+
+        pthread_t id;
+        if(pthread_create(&id, NULL, (void*) client_handler, (void*) node) != 0){
+            perror("Create pthread error!\n");
+            exit(-1);
+        }
     }
 
 
