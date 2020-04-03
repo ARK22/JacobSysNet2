@@ -17,7 +17,7 @@
 #include <pthread.h>
 #include "string.h"
 
-volatile sig_automatic_t flag = 0;
+volatile  sig_atomic_t flag = 0;
 
 int sockfd = 0;
 
@@ -32,12 +32,12 @@ void error(char *msg)
     exit(-1);
 }
 
-void recv()
+void recv_msg_handler()
 {
 	
 }
 
-void send()
+void send_msg_handler()
 {
 	
 }
