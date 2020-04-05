@@ -21,12 +21,41 @@
 //Global variables
 int server_sockfd = 0, client_sockfd = 0, bdFail = 0, lisFail = 0;
 ClientList *root, *current;
+char *data[9];
+
+ClientList *newNode(int sockfd, char* ip) {
+    ClientList *np = (ClientList *)malloc(sizeof(ClientList));
+    np->data = sockfd;
+    np->prev = NULL;
+    np->link = NULL;
+    strncpy(np->ip, ip, 16);
+    strncpy(np->name, "NULL", 5);
+    return np;
+}
+
+void tokenize(char* buffer){
+    char *temp;
+    int i = 0;
+    temp = strtok(buffer, ".");
+    while (temp != NULL){
+        data[i] = temp;
+        temp = strtok(NULL, ".");
+    }
+}
+
 
 void client_handler(void *p_client){
     char buffer[90] = "";
-    ClientList *client = (ClientList *) p_client;
+    ClientList *client;
+
+    client = (ClientList *) p_client;
     recv(client->data, buffer, sizeof(buffer),0);
-    printf("%s", buffer);
+    printf("%s\n", buffer);
+    tokenize(buffer);
+
+    printf("%s,%s,%s", data[0],data[1],data[2]);
+    
+
 
     close(client->data);
     if (client == current) {
@@ -80,13 +109,15 @@ int main()
 
         getpeername(client_sockfd, (struct sockaddr*) &client_info, (socklen_t*) &c_addrlen);
         printf("Client %s:%d has joined.\n", inet_ntoa(client_info.sin_addr), ntohs(client_info.sin_port));
-
-        ClientList *node = newNode(client_sockfd, inet_ntoa(client_info.sin_addr));
+        
+        ClientList *node;
+        node = newNode(client_sockfd, inet_ntoa(client_info.sin_addr));
         node->prev = current;
         current->link = node;
         current = node;
 
         pthread_t id;
+        
         if(pthread_create(&id, NULL, (void*) client_handler, (void*) node) != 0){
             perror("Create pthread error!\n");
             exit(-1);

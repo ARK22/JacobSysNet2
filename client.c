@@ -28,8 +28,9 @@ void regi(int client_socket){
 	strcat(toSend, user);
 	strcat(toSend, ".");
 	strcat(toSend, pass);
+	strcat(toSend, "\0");
 	printf("%s", toSend);
-	send(client_socket, toSend, sizeof(toSend), 0);
+	write(client_socket, toSend, sizeof(toSend));
 }
 
 void catch_ctrl_c_and_exit(int sig)
