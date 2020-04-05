@@ -27,6 +27,8 @@ void groupChat(int client_socket)
 }
 void privateChat(int client_socket)
 {}
+void history(int client_socket)
+{}
 void fileHandler(int client_socket)
 {}
 void pwordReset(int client_socket)
@@ -50,34 +52,7 @@ void regi(int client_socket)
 	write(client_socket, toSend, sizeof(toSend));
 }
 
-void login(int client_socket)
-{
- 
-	char user[30], pass[30], toSend[90] = "2.", isUser;
-	printf("Enter a Username:");
-	scanf("%s", user);
-	printf("Enter a Password:");
-	scanf("%s", pass);
-	strcat(toSend, user);
-	strcat(toSend, ".");
-	strcat(toSend, pass);
-	strcat(toSend, "\0");
-	printf("%s", toSend);
-	write(client_socket, toSend, sizeof(toSend));
-	recv(client_socket, isUser, sizeof(isUser), 0);
-	if(atoi(isUser) == 1)
-	{
-	 menu(client_socket);	
-	}
-	else
-	{
-		printf("Woops... USername or PasSwoRd is InvaLid");
-		return;
-	}
- 
-}
-
-void menu(int client_socket)
+void userMenu(int client_socket)
 {
 	int inp, life = 1;
 	
@@ -130,6 +105,33 @@ void menu(int client_socket)
 			break;
 		}
 	}
+}
+
+void login(int client_socket)
+{
+ 
+	char user[30], pass[30], toSend[90] = "2.", isUser[10];
+	printf("Enter a Username:");
+	scanf("%s", user);
+	printf("Enter a Password:");
+	scanf("%s", pass);
+	strcat(toSend, user);
+	strcat(toSend, ".");
+	strcat(toSend, pass);
+	strcat(toSend, "\0");
+	printf("%s", toSend);
+	write(client_socket, toSend, sizeof(toSend));
+	recv(client_socket, isUser, sizeof(isUser), 0);
+	if(atoi(isUser) == 1)
+	{
+	 userMenu(client_socket);	
+	}
+	else
+	{
+		printf("Woops... USername or PasSwoRd is InvaLid");
+		return;
+	}
+ 
 }
 
 void chatMenu(int client_socket)
@@ -209,7 +211,7 @@ int main()
 		printf("1. Register\n");
 		printf("2. Login\n");
 		printf("0. QUIT\n");
-		printf("Enter an action:");
+		printf("Enter an action: ");
 		scanf("%d", &inp);
 		switch (inp)
 		{

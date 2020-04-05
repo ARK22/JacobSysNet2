@@ -21,7 +21,6 @@
 //Global variables
 int server_sockfd = 0, client_sockfd = 0, bdFail = 0, lisFail = 0;
 ClientList *root, *current;
-char *data[9];
 
 ClientList *newNode(int sockfd, char* ip) {
     ClientList *np = (ClientList *)malloc(sizeof(ClientList));
@@ -33,28 +32,33 @@ ClientList *newNode(int sockfd, char* ip) {
     return np;
 }
 
-void tokenize(char* buffer){
+char** tokenize(char* buffer){
     char *temp;
+    char **data;
+    data = (char **)malloc(9* sizeof(char *));
     int i = 0;
     temp = strtok(buffer, ".");
     while (temp != NULL){
         data[i] = temp;
         temp = strtok(NULL, ".");
+        i++;
     }
+    return data;
 }
 
 
 void client_handler(void *p_client){
     char buffer[90] = "";
     ClientList *client;
+    char **userData;
 
     client = (ClientList *) p_client;
     recv(client->data, buffer, sizeof(buffer),0);
     printf("%s\n", buffer);
-    tokenize(buffer);
+    userData = tokenize(buffer);
 
-    printf("%s,%s,%s", data[0],data[1],data[2]);
-    
+    printf("Here: %s\n", userData[0]);
+    printf("Here: %s\n", userData[1]);
 
 
     close(client->data);
