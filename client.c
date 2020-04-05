@@ -35,8 +35,9 @@ void pwordReset(int client_socket)
 {}
 void admin(int client_socket)
 {}
-void logout(int client_socket)
-{}
+void logout(int client_socket){
+	
+}
 void regi(int client_socket)
 {
 	char user[30], pass[30], toSend[90] = "1.";
@@ -129,7 +130,7 @@ void login(int client_socket)
 	}
 	else
 	{
-		printf("Woops... USername or PasSwoRd is InvaLid");
+		printf("Username or password is invalid\n");
 		return;
 	}
  
@@ -146,12 +147,6 @@ void chatMenu(int client_socket)
 void catch_ctrl_c_and_exit(int sig)
 {
  flag = 1;	
-}
-
-void error(char *msg)
-{
-    perror(msg);
-    exit(-1);
 }
 
 void recv_msg_handler()

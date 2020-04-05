@@ -27,6 +27,7 @@ ClientList *newNode(int sockfd, char* ip) {
     np->data = sockfd;
     np->prev = NULL;
     np->link = NULL;
+    np->loggedin = 0;
     strncpy(np->ip, ip, 16);
     strncpy(np->name, "NULL", 5);
     return np;
@@ -46,22 +47,22 @@ char** tokenize(char* buffer){
     return data;
 }
 
-void displaNumLogged(int client){}
-void groupChat(int client){}
-void privateChat(int client){}
-void getChatHist(int client){}
-void fileTransfer(int client){}
-void pwordSet(int client){}
-void logout(int client){}
-void admin_verif(int client){}
+void displayNumLogged(ClientList *client){}
+void groupChat(ClientList *client){}
+void privateChat(ClientList *client){}
+void getChatHist(ClientList *client){}
+void fileTransfer(ClientList *client){}
+void pwordSet(ClientList *client){}
+void logout(ClientList *client){}
+void admin_verif(ClientList *client){}
 
-void menu_handler(int client)
+void menu_handler(ClientList *client)
 {
 	int life = 1;
-	char inp;
+	char inp[2];
+    recv(client->data, inp, sizeof(inp),0);
 	while(life)
 		switch (atoi(inp))
-			
 			{
 			case 1:
 				displayNumLogged(client);
@@ -95,7 +96,7 @@ void menu_handler(int client)
 void logUsers(char ***userData, ClientList *client){
     FILE* fp = fopen("users.txt", "a");
     char **uData = *userData;
-    fprintf(fp, "%s\n%s\n0\n0\n", uData[1], uData[2]);
+    fprintf(fp, "%s\n%s\n0\n", uData[1], uData[2]);
     write(client->data, "User has been registered", 25);
     fclose(fp);
 }
@@ -103,7 +104,6 @@ void logUsers(char ***userData, ClientList *client){
 void logIn(char ***userData, ClientList *client){
     char **uData = *userData;
     char user[30], pass[30];
-    char test;
     int loggedIn = 0;
     char buffer[30];
 
@@ -116,25 +116,27 @@ void logIn(char ***userData, ClientList *client){
    
     
     FILE* fp;
-	printf("pointer made");
+	//printf("pointer made");
 	
     if((fp = fopen("./users.txt", "r+")) == NULL){
         printf("ERROR: File did not open");
         return;
     }
     while ( fgets(buffer, 30, fp) != NULL){
-		printf("inloop ");
+		/* printf("inloop ");
 		printf("\n 1st buffer print %s \n", buffer);
         printf("\n 2nd buffer print %s \n", buffer);
-		printf("\n String to compare %s\n", user);
+		printf("\n String to compare %s\n", user); */
 		if(strcmp(user, buffer) == 0){
-            printf("\n we are equal! now for : %s \n", pass);
+            //printf("\n we are equal! now for : %s \n", pass);
             
             fgets(buffer, 30, fp);
-			printf("\n 3rd print for Buffer %s \n", buffer);
+			//printf("\n 3rd print for Buffer %s \n", buffer);
             if(strcmp(pass, buffer) == 0){
+                client->loggedin = 1;
+                strcpy(client->name, uData[1]);
+                printf("Client %s has logged in\n",client->name);
                 write(client->data, "1", 1);
-                fputs("1", fp);
                 loggedIn = 1;
                 break;
             }
