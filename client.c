@@ -19,7 +19,24 @@
 volatile  sig_atomic_t flag = 0;
 int sockfd = 0;
 
-void regi(int client_socket){
+void viewNum(int client_socket)
+{}
+void groupChat(int client_socket)
+{
+	
+}
+void privateChat(int client_socket)
+{}
+void fileHandler(int client_socket)
+{}
+void pwordReset(int client_socket)
+{}
+void admin(int client_socket)
+{}
+void logout(int client_socket)
+{}
+void regi(int client_socket)
+{
 	char user[30], pass[30], toSend[90] = "1.";
 	printf("Enter a Username:");
 	scanf("%s", user);
@@ -32,6 +49,96 @@ void regi(int client_socket){
 	printf("%s", toSend);
 	write(client_socket, toSend, sizeof(toSend));
 }
+
+void login(int client_socket)
+{
+ 
+	char user[30], pass[30], toSend[90] = "2.", isUser;
+	printf("Enter a Username:");
+	scanf("%s", user);
+	printf("Enter a Password:");
+	scanf("%s", pass);
+	strcat(toSend, user);
+	strcat(toSend, ".");
+	strcat(toSend, pass);
+	strcat(toSend, "\0");
+	printf("%s", toSend);
+	write(client_socket, toSend, sizeof(toSend));
+	recv(client_socket, isUser, sizeof(isUser), 0);
+	if(atoi(isUser) == 1)
+	{
+	 menu(client_socket);	
+	}
+	else
+	{
+		printf("Woops... USername or PasSwoRd is InvaLid");
+		return;
+	}
+ 
+}
+
+void menu(int client_socket)
+{
+	int inp, life = 1;
+	
+	while (life)
+	{
+		printf("\n-=|  MAIN MENU  |=- \n");
+		printf("1. View current online number \n");
+		printf("2. Enter the group chat \n");
+		printf("3. Enter the private chat  \n");
+		printf("4. View chat history \n");
+		printf("5. File transfer  \n");
+		printf("6. Change the password \n");
+		printf("7. Logout \n");
+		printf("8. Administrator \n");
+		printf("0. Return to the login screen\n");
+		printf("Enter an action:");
+		scanf("%d", &inp);
+		switch (inp)
+		{
+		case 1:
+			viewNum(client_socket);
+			break;
+		case 2:
+			groupChat(client_socket);
+			break;
+		case 3:
+			privateChat(client_socket);
+			break;
+		case 4:
+			history(client_socket);
+			break;
+		case 5:
+			fileHandler(client_socket);
+			break;
+		case 6:
+			pwordReset(client_socket);
+			break;
+		case 7:
+			logout(client_socket);
+			break;
+		case 8:
+			admin(client_socket);
+			break;
+		case 0:
+			life = 0;
+			break;
+		
+		default:
+			printf("Invalid Entry, please pick a number between 0 and 2");
+			break;
+		}
+	}
+}
+
+void chatMenu(int client_socket)
+{
+	
+}
+
+
+
 
 void catch_ctrl_c_and_exit(int sig)
 {
@@ -110,7 +217,7 @@ int main()
 			regi(sockfd);
 			break;
 		case 2:
-			/* code */
+			login(sockfd);
 			break;
 		case 0:
 			life = 0;
