@@ -28,6 +28,7 @@ ClientList *newNode(int sockfd, char* ip) {
     np->prev = NULL;
     np->link = NULL;
     np->loggedin = 0;
+	np->inchat = 0;
     strncpy(np->ip, ip, 16);
     strncpy(np->name, "NULL", 5);
     return np;
@@ -64,7 +65,71 @@ void displayNumLogged(ClientList *client){
     write(client->data, buffer, sizeof(buffer));
 }
 
-void groupChat(ClientList *client){}
+void send_to_gchat(ClientList *client, char *sender)
+{
+	ClientList * temp = root->link;
+	while(temp != NULL)
+	{
+		if(client->data != temp->data&& temp->inchat != 0 )
+		{
+			printf("Send to sockfd %d: \"%s\" \n ", temp->data, sender);
+			send(temp->data, sender, sizeof(sender), 0);
+		}
+		temp = temp->link;
+	}	
+	
+}
+void groupChat(ClientList *client)
+{
+	client->inchat = 1;
+	char buffer[30];
+	char sender[50];
+	
+	while(1)
+	{
+		
+		if(client->inchat == 0)
+		{
+			break;
+		}
+		int recieve = recv(client->data, buffer, sizeof(buffer), 0);
+		if(recieve > 0)
+		{
+			if(strlen(buffer) == 0 )
+			{
+				continue;
+			}
+			sprintf(sender, "%s: %s", client->name, buffer);
+		}
+		else if( strcmp(buffer, "exit\n") == 0)
+		{
+			printf("user : %s has left global chat", client->name);
+			sprintf(sender,"%s leave the chatroom", client->name);
+			client->inchat = 0;
+			send(client->data, "0", sizeof(buffer), 0);
+			return;
+		}
+		else
+		{
+			printf("FATAL CHAT REQ COULD NOT EXECUTE");
+			client->inchat = 0;
+			send(client->data, "0", sizeof(buffer), 0);
+			return;
+		}
+		ClientList * temp = root->link;
+		while(temp != NULL)
+		{
+			if(client->data != temp->data&& temp->inchat != 0 )
+			{
+				printf("Send to sockfd %d: \"%s\" \n ", temp->data, sender);
+				send(temp->data, sender, sizeof(sender), 0);
+			}
+			temp = temp->link;
+		}
+		//send_to_gchat(client,sender);
+	}
+	
+}
 void privateChat(ClientList *client){}
 void getChatHist(ClientList *client){}
 void fileTransfer(ClientList *client){}

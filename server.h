@@ -7,6 +7,7 @@ typedef struct ClientNode {
     struct ClientNode* link;
     char ip[16];
     char name[31];
+    int inchat;
     int loggedin;
 } ClientList;
 

@@ -15,9 +15,62 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <stdint.h>
 
 volatile  sig_atomic_t flag = 0;
 int sockfd = 0;
+
+void push_message_down()
+{
+	printf("\r%s", "> ");
+    fflush(stdout);	
+}
+void recv_msg_handler(void* client_socket)
+{
+	char recieve_message[50];
+	int sockfd = (intptr_t)client_socket;
+	
+	while(1)
+	{
+		recv(sockfd, recieve_message, sizeof(recieve_message), 0);
+		
+		if(strcmp(recieve_message, "0") == 0)
+		{
+			printf("\nyou have left the chat\n");
+			break;
+		}
+		printf("\r %s \n", recieve_message);
+		push_message_down();
+	}
+}
+
+void send_msg_handler(void * client_socket)
+{
+	char message[30];
+	int sockfd = (intptr_t)client_socket;
+	while(1)
+	{
+		push_message_down();
+		while(fgets(message, sizeof(message), stdin)!= NULL)
+		{
+			if(strlen(message) == 0)
+			{
+				push_message_down();
+			}
+			else
+			{
+				break;
+			}
+		}
+		send(sockfd,message, sizeof(message), 0);
+		if(strcmp(message, "exit\n") == 0)
+		{
+			break;
+		}
+	}
+	
+}
+
 
 void viewNum(int client_socket){
 	char numOnline[2];
@@ -26,7 +79,24 @@ void viewNum(int client_socket){
 	printf("The number of users online is: %d\n", atoi(numOnline));
 }
 void groupChat(int client_socket)
-{
+{	
+	send(client_socket, "2", sizeof("2"), 0);
+	pthread_t reciever;
+	
+	if (pthread_create(&reciever, NULL, (void *) recv_msg_handler, (void *)(intptr_t)client_socket) != 0) {
+        printf ("Create pthread error!\n");
+        exit(EXIT_FAILURE);
+    }
+	
+	
+	pthread_t sender;
+	 if (pthread_create(&sender, NULL, (void *) send_msg_handler, (void *)(intptr_t)client_socket) != 0) {
+        printf ("Create pthread error!\n");
+        exit(EXIT_FAILURE);
+    }
+	
+	pthread_join(sender,NULL);
+	pthread_join(reciever, NULL);
 	
 }
 void privateChat(int client_socket)
@@ -56,6 +126,7 @@ void pwordReset(int client_socket){
 
 void admin(int client_socket)
 {}
+
 void logout(int client_socket){
 	write(client_socket, "7", 1);
 	printf("You have been logged out\n");
@@ -99,9 +170,11 @@ void userMenu(int client_socket)
 			viewNum(client_socket);
 			break;
 		case 2:
+			printf("\n-=|  GROUP CHAT  |=- \n");
 			groupChat(client_socket);
 			break;
 		case 3:
+			printf("\n-=|  PRIVATE CHAT  |=- \n");
 			privateChat(client_socket);
 			break;
 		case 4:
@@ -167,15 +240,6 @@ void catch_ctrl_c_and_exit(int sig)
  flag = 1;	
 }
 
-void recv_msg_handler()
-{
-	
-}
-
-void send_msg_handler()
-{
-	
-}
 
 int main()
 {
