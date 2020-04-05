@@ -19,8 +19,12 @@
 volatile  sig_atomic_t flag = 0;
 int sockfd = 0;
 
-void viewNum(int client_socket)
-{}
+void viewNum(int client_socket){
+	char numOnline[2];
+	write(client_socket, "1", 1);
+	recv(client_socket, numOnline, sizeof(numOnline), 0);
+	printf("The number of users online is: %d\n", atoi(numOnline));
+}
 void groupChat(int client_socket)
 {
 	
@@ -31,12 +35,30 @@ void history(int client_socket)
 {}
 void fileHandler(int client_socket)
 {}
-void pwordReset(int client_socket)
-{}
+void pwordReset(int client_socket){
+	char buffer[30];
+	char currentPass[30];
+	write(client_socket, "6", 1);
+	recv(client_socket, buffer, sizeof(buffer), 0);
+	printf("Enter your current password: ");
+	scanf("%s", currentPass);
+	strcat(currentPass, "\n");
+	if(strcmp(buffer, currentPass) == 0){
+		printf("Enter your new password: ");
+		scanf("%s", buffer);
+		write(client_socket, buffer, sizeof(buffer));
+	}
+	else{
+		write(client_socket, "exit", sizeof("exit"));
+		printf("Password is incorrect\n");
+	}
+}
+
 void admin(int client_socket)
 {}
 void logout(int client_socket){
-	
+	write(client_socket, "7", 1);
+	printf("You have been logged out\n");
 }
 void regi(int client_socket)
 {
@@ -69,8 +91,7 @@ void userMenu(int client_socket)
 		printf("6. Change the password \n");
 		printf("7. Logout \n");
 		printf("8. Administrator \n");
-		printf("0. Return to the login screen\n");
-		printf("Enter an action:");
+		printf("Enter an action: ");
 		scanf("%d", &inp);
 		switch (inp)
 		{
@@ -94,16 +115,14 @@ void userMenu(int client_socket)
 			break;
 		case 7:
 			logout(client_socket);
+			return;
 			break;
 		case 8:
 			admin(client_socket);
 			break;
-		case 0:
-			life = 0;
-			break;
 		
 		default:
-			printf("Invalid Entry, please pick a number between 0 and 2");
+			printf("Invalid Entry, please pick a number between 1 and 8");
 			break;
 		}
 	}
@@ -113,15 +132,14 @@ void login(int client_socket)
 {
  
 	char user[30], pass[30], toSend[90] = "2.", isUser[10];
-	printf("Enter a Username:");
+	printf("Enter a Username: ");
 	scanf("%s", user);
-	printf("Enter a Password:");
+	printf("Enter a Password: ");
 	scanf("%s", pass);
 	strcat(toSend, user);
 	strcat(toSend, ".");
 	strcat(toSend, pass);
 	strcat(toSend, "\0");
-	printf("%s", toSend);
 	write(client_socket, toSend, sizeof(toSend));
 	recv(client_socket, isUser, sizeof(isUser), 0);
 	if(atoi(isUser) == 1)

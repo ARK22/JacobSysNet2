@@ -47,23 +47,73 @@ char** tokenize(char* buffer){
     return data;
 }
 
-void displayNumLogged(ClientList *client){}
+void displayNumLogged(ClientList *client){
+    ClientList *currentUser;
+    int count = 0;
+    char buffer[2];
+    currentUser = root;
+
+    while (currentUser != NULL)
+    {
+        if(currentUser->loggedin == 1){
+            count++;
+        }
+        currentUser = currentUser->link;
+    }
+    sprintf(buffer,"%d",count);
+    write(client->data, buffer, sizeof(buffer));
+}
+
 void groupChat(ClientList *client){}
 void privateChat(ClientList *client){}
 void getChatHist(ClientList *client){}
 void fileTransfer(ClientList *client){}
-void pwordSet(ClientList *client){}
-void logout(ClientList *client){}
+void pwordSet(ClientList *client){
+    FILE* fp;
+    if((fp = fopen("./users.txt", "r+")) == NULL){
+        printf("ERROR: File did not open to find username");
+        return;
+    }
+    char buffer[30], newPass[30];
+    strcat(client->name, "\n");
+    while (fgets(buffer, 30, fp) != NULL){
+        if(strcmp(buffer, client->name) == 0){
+            fgets(buffer, 30, fp);
+            write(client->data, buffer, sizeof(buffer));
+            fclose(fp);
+            printf("\nUsername has been found\n");
+            break;
+        }
+    }
+    recv(client->data, newPass, sizeof(newPass), 0);
+    if(strcmp(newPass, "exit") == 0){
+        return;
+    }
+    strcat(newPass, "\n");
+    if((fp = fopen("./users.txt", "r+")) == NULL){
+        printf("ERROR: File did not open to find password");
+        return;
+    }
+    strcpy(buffer, "\0");
+    while (fgets(buffer, 30, fp) != NULL){
+        if(strcmp(buffer, client->name) == 0){
+            fputs(newPass, fp);
+            fclose(fp);
+            printf("\nPassword has been changed\n");
+            break;
+        }
+    }
+
+}
 void admin_verif(ClientList *client){}
 
-void menu_handler(ClientList *client)
-{
+void menu_handler(ClientList *client){
 	int life = 1;
 	char inp[2];
+
+    while(life){
     recv(client->data, inp, sizeof(inp),0);
-	while(life)
-		switch (atoi(inp))
-			{
+		switch (atoi(inp)){
 			case 1:
 				displayNumLogged(client);
 				break;
@@ -83,7 +133,8 @@ void menu_handler(ClientList *client)
 				pwordSet(client);
 				break;
 			case 7:
-				logout(client);
+				client->loggedin = 0;
+                return;
 				break;
 			case 8:
 				admin_verif(client);
@@ -92,6 +143,7 @@ void menu_handler(ClientList *client)
 				life = 0;
 				break;
 			}
+    }
 }
 void logUsers(char ***userData, ClientList *client){
     FILE* fp = fopen("users.txt", "a");
@@ -110,28 +162,18 @@ void logIn(char ***userData, ClientList *client){
     strcpy(user,uData[1]);
 	strcat(user, "\n");
     strcpy(pass,uData[2]);
-	strcat(pass, "\n");
-    printf("%s\n", user);
-    printf("%s\n", pass);
-   
+	strcat(pass, "\n"); 
     
     FILE* fp;
-	//printf("pointer made");
 	
     if((fp = fopen("./users.txt", "r+")) == NULL){
-        printf("ERROR: File did not open");
+        printf("ERROR: File did not open in login");
         return;
     }
     while ( fgets(buffer, 30, fp) != NULL){
-		/* printf("inloop ");
-		printf("\n 1st buffer print %s \n", buffer);
-        printf("\n 2nd buffer print %s \n", buffer);
-		printf("\n String to compare %s\n", user); */
 		if(strcmp(user, buffer) == 0){
-            //printf("\n we are equal! now for : %s \n", pass);
             
             fgets(buffer, 30, fp);
-			//printf("\n 3rd print for Buffer %s \n", buffer);
             if(strcmp(pass, buffer) == 0){
                 client->loggedin = 1;
                 strcpy(client->name, uData[1]);
@@ -143,15 +185,13 @@ void logIn(char ***userData, ClientList *client){
         }
     }
     if(loggedIn == 1){
-        printf("NOICE\n");
+        fclose(fp);
         menu_handler(client);
     }
     else{
+        fclose(fp);
         write(client->data, "0", 1);
     }
-
-    fclose(fp);
-    
 }
 
 
@@ -173,7 +213,7 @@ void login_handler(void *p_client){
         case 2:
             logIn(&userData, client);
             break;
-        case 0:
+        default:
             life = 0;
             printf("Client has left the server.\n");
             break;
@@ -225,6 +265,7 @@ int main()
     printf("Server started on: %s:%d\n", inet_ntoa(server_info.sin_addr), ntohs(server_info.sin_port));
 
     root = newNode(server_sockfd, inet_ntoa(server_info.sin_addr));
+    root->loggedin = 0;
     current = root;
 
     while(1){
