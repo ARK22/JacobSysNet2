@@ -48,8 +48,9 @@ void regi(int client_socket)
 	strcat(toSend, ".");
 	strcat(toSend, pass);
 	strcat(toSend, "\0");
-	printf("%s", toSend);
 	write(client_socket, toSend, sizeof(toSend));
+	recv(client_socket, toSend, sizeof(toSend), 0);
+	printf("\n%s\n", toSend);
 }
 
 void userMenu(int client_socket)
@@ -223,6 +224,7 @@ int main()
 			break;
 		case 0:
 			life = 0;
+			write(sockfd, "0", 1);
 			break;
 		
 		default:

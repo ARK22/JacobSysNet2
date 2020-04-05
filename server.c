@@ -46,20 +46,92 @@ char** tokenize(char* buffer){
     return data;
 }
 
+void logUsers(char ***userData, ClientList *client){
+    FILE* fp = fopen("users.txt", "a");
+    char **uData = *userData;
+    fprintf(fp, "%s\n%s\n0\n0\n", uData[1], uData[2]);
+    write(client->data, "User has been registered", 25);
+    fclose(fp);
+}
 
-void client_handler(void *p_client){
+void logIn(char ***userData, ClientList *client){
+    char **uData = *userData;
+    char *user, *pass;
+    char test;
+    int loggedIn = 0;
+    char buffer[30];
+
+    user = uData[1];
+    pass = uData[2];
+    printf("%s\n", user);
+    printf("%s\n", pass);
+    //strcat(temp, "\n");
+
+    
+    FILE* fp = fopen("./users.txt", "r+");
+    if(fp == NULL){
+        printf("ERROR: File did not open");
+        return;
+    }
+    printf("HERE");
+    fgets(buffer, 30, fp);
+    printf("HERE2");
+    while (1){
+        
+        if(strcmp(user, buffer) == 0){
+            printf("%s\n", pass);
+            //strcat(temp, "\n");
+            fgets(buffer, 30, fp);
+            if(strcmp(pass, buffer) == 0){
+                write(client->data, "1", 1);
+                fputs("1", fp);
+                loggedIn = 1;
+                break;
+            }
+        }
+        test = fgetc(fp);
+        if(test == EOF){
+            break;
+        }
+        ungetc(test, fp);
+    }
+    if(loggedIn == 1){
+        printf("NOICE\n");
+        //menu_handler(client);
+    }
+    else{
+        write(client->data, "0", 1);
+    }
+
+    fclose(fp);
+    
+}
+
+
+void login_handler(void *p_client){
     char buffer[90] = "";
+    int life = 1;
     ClientList *client;
     char **userData;
-
     client = (ClientList *) p_client;
-    recv(client->data, buffer, sizeof(buffer),0);
-    printf("%s\n", buffer);
-    userData = tokenize(buffer);
+    while(life){
+        recv(client->data, buffer, sizeof(buffer),0);
+        userData = tokenize(buffer);
 
-    printf("Here: %s\n", userData[0]);
-    printf("Here: %s\n", userData[1]);
-
+        switch (atoi(userData[0]))
+        {
+        case 1:
+            logUsers(&userData, client);
+            break;
+        case 2:
+            logIn(&userData, client);
+            break;
+        case 0:
+            life = 0;
+            printf("Client has left the server.\n");
+            break;
+        }
+    }
 
     close(client->data);
     if (client == current) {
@@ -122,7 +194,7 @@ int main()
 
         pthread_t id;
         
-        if(pthread_create(&id, NULL, (void*) client_handler, (void*) node) != 0){
+        if(pthread_create(&id, NULL, (void*) login_handler, (void*) node) != 0){
             perror("Create pthread error!\n");
             exit(-1);
         }
