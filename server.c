@@ -46,6 +46,52 @@ char** tokenize(char* buffer){
     return data;
 }
 
+void displaNumLogged(int client){}
+void groupChat(int client){}
+void privateChat(int client){}
+void getChatHist(int client){}
+void fileTransfer(int client){}
+void pwordSet(int client){}
+void logout(int client){}
+void admin_verif(int client){}
+
+void menu_handler(int client)
+{
+	int life = 1;
+	char inp;
+	while(life)
+		switch (atoi(inp))
+			
+			{
+			case 1:
+				displayNumLogged(client);
+				break;
+			case 2:
+				groupChat(client);
+				break;
+			case 3:
+				privateChat(client);
+				break;
+			case 4:
+				getChatHist(client);
+				break;
+			case 5:
+				fileTransfer(client);
+				break;
+			case 6:
+				pwordSet(client);
+				break;
+			case 7:
+				logout(client);
+				break;
+			case 8:
+				admin_verif(client);
+				break;
+			case 0:
+				life = 0;
+				break;
+			}
+}
 void logUsers(char ***userData, ClientList *client){
     FILE* fp = fopen("users.txt", "a");
     char **uData = *userData;
@@ -56,32 +102,36 @@ void logUsers(char ***userData, ClientList *client){
 
 void logIn(char ***userData, ClientList *client){
     char **uData = *userData;
-    char *user, *pass;
+    char user[30], pass[30];
     char test;
     int loggedIn = 0;
     char buffer[30];
 
-    user = uData[1];
-    pass = uData[2];
+    strcpy(user,uData[1]);
+	strcat(user, "\n");
+    strcpy(pass,uData[2]);
+	strcat(pass, "\n");
     printf("%s\n", user);
     printf("%s\n", pass);
-    //strcat(temp, "\n");
-
+   
     
-    FILE* fp = fopen("./users.txt", "r+");
-    if(fp == NULL){
+    FILE* fp;
+	printf("pointer made");
+	
+    if((fp = fopen("./users.txt", "r+")) == NULL){
         printf("ERROR: File did not open");
         return;
     }
-    printf("HERE");
-    fgets(buffer, 30, fp);
-    printf("HERE2");
-    while (1){
-        
-        if(strcmp(user, buffer) == 0){
-            printf("%s\n", pass);
-            //strcat(temp, "\n");
+    while ( fgets(buffer, 30, fp) != NULL){
+		printf("inloop ");
+		printf("\n 1st buffer print %s \n", buffer);
+        printf("\n 2nd buffer print %s \n", buffer);
+		printf("\n String to compare %s\n", user);
+		if(strcmp(user, buffer) == 0){
+            printf("\n we are equal! now for : %s \n", pass);
+            
             fgets(buffer, 30, fp);
+			printf("\n 3rd print for Buffer %s \n", buffer);
             if(strcmp(pass, buffer) == 0){
                 write(client->data, "1", 1);
                 fputs("1", fp);
@@ -89,15 +139,10 @@ void logIn(char ***userData, ClientList *client){
                 break;
             }
         }
-        test = fgetc(fp);
-        if(test == EOF){
-            break;
-        }
-        ungetc(test, fp);
     }
     if(loggedIn == 1){
         printf("NOICE\n");
-        //menu_handler(client);
+        menu_handler(client);
     }
     else{
         write(client->data, "0", 1);
