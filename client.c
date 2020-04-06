@@ -101,23 +101,23 @@ void groupChat(int client_socket)
 	
 }
 void privateChat(int client_socket)
-{
-	char currentUsers[100], selection[30], serverResponse[10];
-	int chat_sock;
-	write(client_socket, "3", sizeof("3"));
-	recv(client_socket, currentUsers, sizeof(currentUsers), 0);
-	printf("Current Online Users\n");
-	printf("%s\n", currentUsers);
-	printf("Enter the name of the person you'd like to message: ");
-	fflush(stdin);
-	scanf("%s%*c", selection);
-	write(client_socket, selection, sizeof(selection));
-	recv(client_socket, serverResponse, sizeof(serverResponse), 0);
-	if(strcmp(serverResponse, "fail") == 0){
-		printf("User is not logged in or does not exist\n");
-		return;
-	}
-	chat_sock = atoi(serverResponse);
+{	send(client_socket, "3", sizeof("3"), 0);
+	
+	pthread_t reciever;
+	if (pthread_create(&reciever, NULL, (void *) recv_msg_handler, (void *)(intptr_t)client_socket) != 0) {
+        printf ("Create pthread error!\n");
+        exit(EXIT_FAILURE);
+    }
+	printf("\n-=|  PRIVATE CHAT  |=- \n");
+	
+	pthread_t sender;
+	 if (pthread_create(&sender, NULL, (void *) send_msg_handler, (void *)(intptr_t)client_socket) != 0) {
+        printf ("Create pthread error!\n");
+        exit(EXIT_FAILURE);
+    }
+	
+	pthread_join(sender,NULL);
+	pthread_join(reciever, NULL);
 
 }
 
@@ -197,7 +197,6 @@ void userMenu(int client_socket)
 			groupChat(client_socket);
 			break;
 		case 3:
-			printf("\n-=|  PRIVATE CHAT  |=- \n");
 			privateChat(client_socket);
 			break;
 		case 4:

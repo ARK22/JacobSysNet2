@@ -15,6 +15,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <time.h>
 #include "server.h"
 #define MAX_CONNECTIONS 5
 
@@ -25,6 +26,7 @@ ClientList *root, *current;
 ClientList *newNode(int sockfd, char* ip) {
     ClientList *np = (ClientList *)malloc(sizeof(ClientList));
     np->data = sockfd;
+	np->priv = NULL;
     np->prev = NULL;
     np->link = NULL;
     np->loggedin = 0;
@@ -33,6 +35,7 @@ ClientList *newNode(int sockfd, char* ip) {
     strncpy(np->name, "NULL", 5);
     return np;
 }
+
 
 char** tokenize(char* buffer){
     char *temp;
@@ -91,7 +94,7 @@ void groupChat(ClientList *client){
 			client->inchat = 0;
             while(temp != NULL)
 		{
-			if(client->data != temp->data&& temp->inchat != 0 )
+			if(client->data != temp->data&& temp->inchat == 1 )
 			{
 				printf("Send to sockfd %d: \"%s\"\n", temp->data, sender);
 				send(temp->data, sender, sizeof(sender), 0);
@@ -104,7 +107,7 @@ void groupChat(ClientList *client){
 
 		while(temp != NULL)
 		{
-			if(client->data != temp->data&& temp->inchat != 0 )
+			if(client->data != temp->data&& temp->inchat == 1)
 			{
 				printf("Send to sockfd %d: \"%s\"", temp->data, sender);
 				send(temp->data, sender, sizeof(sender), 0);
@@ -112,41 +115,57 @@ void groupChat(ClientList *client){
 			temp = temp->link;
 		}
 	}
+}
+void privateChat(ClientList *client){
+	client->inchat = 2;
+	char buffer[30];
+	char sender[50];
+    ClientList * temp;
 	
+	while(1)
+	{
+    temp = root->link;
+		
+		if(client->inchat == 0)
+		{
+			break;
+		}
+		int recieve = recv(client->data, buffer, sizeof(buffer), 0);
+		if(recieve > 0)
+		{
+			sprintf(sender, "%s: %s", client->name, buffer);
+		}
+		if(strcmp(buffer, "exit\n") == 0)
+		{
+			printf("user : %s has left chat\n", client->name);
+			sprintf(sender,"%s leave the chatroom", client->name);
+			client->inchat = 0;
+			client->priv = 0;
+            while(temp != NULL)
+		{
+			if(client->data != temp->data&& temp->inchat == 2 )
+			{
+				printf("Send to sockfd %d: \"%s\"\n", temp->data, sender);
+				send(temp->data, sender, sizeof(sender), 0);
+			}
+			temp = temp->link;
+		}
+			send(client->data, "0", sizeof("0"), 0);
+			return;
+		}
+
+		while(temp != NULL)
+		{
+			if(client->data != temp->data&& temp->inchat == 2)
+			{
+				printf("Send to sockfd %d: \"%s\"", temp->data, sender);
+				send(temp->data, sender, sizeof(sender), 0);
+			}
+			temp = temp->link;
+		}
+	}
 }
 
-void privateChat(ClientList *client){
-    ClientList *temp = root;
-    int tog = 0;
-    char currentUsers[100] = "";
-    char selection[30];
-    while (temp != NULL){
-        if(temp->loggedin == 1){
-            strcat(currentUsers, temp->name);
-            strcat(currentUsers, "\n");
-        }
-        temp = temp->link;
-    }
-    write(client->data, currentUsers, sizeof(currentUsers));
-    recv(client->data, selection, sizeof(selection), 0);
-    printf("%s\n", selection);
-    temp = root;
-    while (temp != NULL){
-        if(strcmp(selection, temp->name) == 0){
-            tog = 1;
-            printf("Usename was found\n");
-            break;
-        }
-        temp = temp->link;
-    }
-    if(tog != 1){
-        printf("Username not found\n");
-        write(client->data, "fail", sizeof("fail"));
-        return;
-    }
-    write(client->data, temp->data, sizeof(temp->data));
-    
-}
 void getChatHist(ClientList *client){}
 void fileTransfer(ClientList *client){}
 
