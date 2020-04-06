@@ -114,7 +114,37 @@ void groupChat(ClientList *client){
 	}
 	
 }
+
 void privateChat(ClientList *client){
+    ClientList *temp = root;
+    int tog = 0;
+    char currentUsers[100] = "";
+    char selection[30];
+    while (temp != NULL){
+        if(temp->loggedin == 1){
+            strcat(currentUsers, temp->name);
+            strcat(currentUsers, "\n");
+        }
+        temp = temp->link;
+    }
+    write(client->data, currentUsers, sizeof(currentUsers));
+    recv(client->data, selection, sizeof(selection), 0);
+    printf("%s\n", selection);
+    temp = root;
+    while (temp != NULL){
+        if(strcmp(selection, temp->name) == 0){
+            tog = 1;
+            printf("Usename was found\n");
+            break;
+        }
+        temp = temp->link;
+    }
+    if(tog != 1){
+        printf("Username not found\n");
+        write(client->data, "fail", sizeof("fail"));
+        return;
+    }
+    write(client->data, temp->data, sizeof(temp->data));
     
 }
 void getChatHist(ClientList *client){}
@@ -316,6 +346,7 @@ int main() {
 
     root = newNode(server_sockfd, inet_ntoa(server_info.sin_addr));
     root->loggedin = 0;
+    strcpy(root->name, "Server");
     current = root;
 
     while(1){

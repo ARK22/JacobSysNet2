@@ -102,7 +102,23 @@ void groupChat(int client_socket)
 }
 void privateChat(int client_socket)
 {
-	
+	char currentUsers[100], selection[30], serverResponse[10];
+	int chat_sock;
+	write(client_socket, "3", sizeof("3"));
+	recv(client_socket, currentUsers, sizeof(currentUsers), 0);
+	printf("Current Online Users\n");
+	printf("%s\n", currentUsers);
+	printf("Enter the name of the person you'd like to message: ");
+	fflush(stdin);
+	scanf("%s%*c", selection);
+	write(client_socket, selection, sizeof(selection));
+	recv(client_socket, serverResponse, sizeof(serverResponse), 0);
+	if(strcmp(serverResponse, "fail") == 0){
+		printf("User is not logged in or does not exist\n");
+		return;
+	}
+	chat_sock = atoi(serverResponse);
+
 }
 
 void history(int client_socket)
