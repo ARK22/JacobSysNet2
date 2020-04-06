@@ -65,28 +65,15 @@ void displayNumLogged(ClientList *client){
     write(client->data, buffer, sizeof(buffer));
 }
 
-void send_to_gchat(ClientList *client, char *sender)
-{
-	ClientList * temp = root->link;
-	while(temp != NULL)
-	{
-		if(client->data != temp->data&& temp->inchat != 0 )
-		{
-			printf("Send to sockfd %d: \"%s\" \n ", temp->data, sender);
-			send(temp->data, sender, sizeof(sender), 0);
-		}
-		temp = temp->link;
-	}	
-	
-}
-void groupChat(ClientList *client)
-{
+void groupChat(ClientList *client){
 	client->inchat = 1;
 	char buffer[30];
 	char sender[50];
+    ClientList * temp;
 	
 	while(1)
 	{
+    temp = root->link;
 		
 		if(client->inchat == 0)
 		{
@@ -95,44 +82,44 @@ void groupChat(ClientList *client)
 		int recieve = recv(client->data, buffer, sizeof(buffer), 0);
 		if(recieve > 0)
 		{
-			if(strlen(buffer) == 0 )
-			{
-				continue;
-			}
 			sprintf(sender, "%s: %s", client->name, buffer);
 		}
-		else if( strcmp(buffer, "exit\n") == 0)
+		if(strcmp(buffer, "exit\n") == 0)
 		{
-			printf("user : %s has left global chat", client->name);
+			printf("user : %s has left global chat\n", client->name);
 			sprintf(sender,"%s leave the chatroom", client->name);
 			client->inchat = 0;
-			send(client->data, "0", sizeof(buffer), 0);
-			return;
-		}
-		else
-		{
-			printf("FATAL CHAT REQ COULD NOT EXECUTE");
-			client->inchat = 0;
-			send(client->data, "0", sizeof(buffer), 0);
-			return;
-		}
-		ClientList * temp = root->link;
-		while(temp != NULL)
+            while(temp != NULL)
 		{
 			if(client->data != temp->data&& temp->inchat != 0 )
 			{
-				printf("Send to sockfd %d: \"%s\" \n ", temp->data, sender);
+				printf("Send to sockfd %d: \"%s\"\n", temp->data, sender);
 				send(temp->data, sender, sizeof(sender), 0);
 			}
 			temp = temp->link;
 		}
-		//send_to_gchat(client,sender);
+			send(client->data, "0", sizeof("0"), 0);
+			return;
+		}
+
+		while(temp != NULL)
+		{
+			if(client->data != temp->data&& temp->inchat != 0 )
+			{
+				printf("Send to sockfd %d: \"%s\"", temp->data, sender);
+				send(temp->data, sender, sizeof(sender), 0);
+			}
+			temp = temp->link;
+		}
 	}
 	
 }
-void privateChat(ClientList *client){}
+void privateChat(ClientList *client){
+    
+}
 void getChatHist(ClientList *client){}
 void fileTransfer(ClientList *client){}
+
 void pwordSet(ClientList *client){
     FILE* fp;
     if((fp = fopen("./users.txt", "r+")) == NULL){
@@ -259,7 +246,6 @@ void logIn(char ***userData, ClientList *client){
     }
 }
 
-
 void login_handler(void *p_client){
     char buffer[90] = "";
     int life = 1;
@@ -297,8 +283,7 @@ void login_handler(void *p_client){
     free(client);
 }
 
-int main() 
-{
+int main() {
     server_sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if(server_sockfd == -1){
         printf("Failed to create socket");

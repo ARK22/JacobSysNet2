@@ -78,6 +78,7 @@ void viewNum(int client_socket){
 	recv(client_socket, numOnline, sizeof(numOnline), 0);
 	printf("The number of users online is: %d\n", atoi(numOnline));
 }
+
 void groupChat(int client_socket)
 {	
 	send(client_socket, "2", sizeof("2"), 0);
@@ -100,11 +101,16 @@ void groupChat(int client_socket)
 	
 }
 void privateChat(int client_socket)
-{}
+{
+	
+}
+
 void history(int client_socket)
 {}
+
 void fileHandler(int client_socket)
 {}
+
 void pwordReset(int client_socket){
 	char buffer[30];
 	char currentPass[30];
@@ -131,6 +137,7 @@ void logout(int client_socket){
 	write(client_socket, "7", 1);
 	printf("You have been logged out\n");
 }
+
 void regi(int client_socket)
 {
 	char user[30], pass[30], toSend[90] = "1.";
@@ -203,7 +210,6 @@ void userMenu(int client_socket)
 
 void login(int client_socket)
 {
- 
 	char user[30], pass[30], toSend[90] = "2.", isUser[10];
 	printf("Enter a Username: ");
 	scanf("%s", user);
@@ -227,19 +233,10 @@ void login(int client_socket)
  
 }
 
-void chatMenu(int client_socket)
-{
-	
-}
-
-
-
-
 void catch_ctrl_c_and_exit(int sig)
 {
  flag = 1;	
 }
-
 
 int main()
 {
